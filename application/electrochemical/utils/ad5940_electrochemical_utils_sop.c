@@ -93,17 +93,71 @@ static AD5940Err _write_ADC_sequence_commands(
     );
 	AD5940_ClksCalculate(&clks_cal, &WaitClks);
 
-	AD5940_SEQGenCtrl(bTRUE);
-    
-	AD5940_AFECtrlS(AFECTRL_ADCPWR | AFECTRL_SINC2NOTCH, bTRUE);
-	AD5940_SEQGenInsert(SEQ_WAIT(16*250));  /* wait 250us for reference power up */
-	AD5940_AFECtrlS(AFECTRL_ADCCNV, bTRUE);  /* Start ADC convert and DFT */
-	AD5940_SEQGenInsert(SEQ_WAIT(WaitClks));  /* wait for first data ready */
-	AD5940_AFECtrlS(AFECTRL_ADCPWR | AFECTRL_ADCCNV | AFECTRL_SINC2NOTCH, bFALSE);  /* Stop ADC */
-	// AD5940_EnterSleepS();/* Goto hibernate */
-	/* Sequence end. */
-	error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
-	AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
+    uint8_t type = 2;
+
+    if(type == 0)
+    {
+        AD5940_SEQGenCtrl(bTRUE);
+        
+        AD5940_AFECtrlS(AFECTRL_ADCPWR | AFECTRL_SINC2NOTCH, bTRUE);
+        AD5940_SEQGenInsert(SEQ_WAIT(16*250));  /* wait 250us for reference power up */
+        AD5940_AFECtrlS(AFECTRL_ADCCNV, bTRUE);  /* Start ADC convert and DFT */
+        AD5940_SEQGenInsert(SEQ_WAIT(WaitClks));  /* wait for first data ready */
+        AD5940_AFECtrlS(AFECTRL_ADCPWR | AFECTRL_ADCCNV | AFECTRL_SINC2NOTCH, bFALSE);  /* Stop ADC */
+        // AD5940_EnterSleepS();/* Goto hibernate */
+        /* Sequence end. */
+        error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
+        AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
+    }
+    else
+    {
+        uint32_t adcmuxp;
+        switch (type)
+        {
+        case 1:
+            adcmuxp = (ADCMUXP_LPTIA0_P << BITP_AFE_ADCCON_MUXSELP)
+             | (ADCMUXN_LPTIA0_N << BITP_AFE_ADCCON_MUXSELN);
+            break;
+        case 2:
+            adcmuxp = (ADCMUXP_HSTIA_P << BITP_AFE_ADCCON_MUXSELP)
+            | (ADCMUXN_HSTIA_N << BITP_AFE_ADCCON_MUXSELN);
+            break;
+        default:
+            return AD5940ERR_PARA;
+        }
+
+        uint32_t tempregBuff = AD5940_ReadReg(REG_AFE_ADCCON);
+        tempregBuff &= BITM_AFE_ADCCON_GNOFSELPGA | BITM_AFE_ADCCON_GNOFFSEL;
+        
+        uint32_t tempreg;
+
+        AD5940_SEQGenCtrl(bTRUE);
+        
+        AD5940_AFECtrlS(AFECTRL_ADCPWR | AFECTRL_SINC2NOTCH, bTRUE);
+        
+        tempreg |= tempregBuff
+        | (ADCMUXP_TEMPP << BITP_AFE_ADCCON_MUXSELP)
+        | (ADCMUXN_TEMPN << BITP_AFE_ADCCON_MUXSELN);
+        AD5940_WriteReg(REG_AFE_ADCCON, tempreg);
+
+        AD5940_SEQGenInsert(SEQ_WAIT(16*50));   /* wait another 50us for ADC to settle. */
+        AD5940_AFECtrlS(AFECTRL_TEMPCNV|AFECTRL_ADCCNV, bTRUE);  /* Start ADC convert */
+        AD5940_SEQGenInsert(SEQ_WAIT(WaitClks));
+        AD5940_AFECtrlS(AFECTRL_TEMPCNV|AFECTRL_ADCCNV, bFALSE);    /* Stop ADC */
+        AD5940_SEQGenInsert(SEQ_WAIT(20));			/* Add some delay before put AD5940 to hibernate, needs some clock to move data to FIFO. */
+        
+        tempreg |= tempregBuff | adcmuxp;
+
+        AD5940_AFECtrlS(AFECTRL_SINC2NOTCH, bTRUE);
+        AD5940_SEQGenInsert(SEQ_WAIT(16*250));  /* wait 250us for reference power up */
+        AD5940_AFECtrlS(AFECTRL_ADCCNV, bTRUE);  /* Start ADC convert and DFT */
+        AD5940_SEQGenInsert(SEQ_WAIT(WaitClks));  /* wait for first data ready */
+        AD5940_AFECtrlS(AFECTRL_ADCPWR | AFECTRL_ADCCNV | AFECTRL_SINC2NOTCH, bFALSE);  /* Stop ADC */
+        // AD5940_EnterSleepS();/* Goto hibernate */
+        /* Sequence end. */
+        error = AD5940_SEQGenFetchSeq(&pSeqCmd, &SeqLen);
+        AD5940_SEQGenCtrl(bFALSE); /* Stop sequencer generator */
+    }
 
     if(error != AD5940ERR_OK) return error;
 
