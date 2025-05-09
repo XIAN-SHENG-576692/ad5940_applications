@@ -1,0 +1,4 @@
+[submodule "library"]
+	path = library
+	url = https://github.com/analogdevicesinc/ad5940lib.git
+	branch = master
