@@ -11,7 +11,7 @@ extern "C"
 
 /*
  * ================================================================
- * @brief This line below is for the AD5940 Electrochemical EIS scan operation.
+ * @brief This line below is for the AD5940 Electrochemical impedance spectroscopy (EIS) scan operation.
  * ================================================================
 */
 
@@ -42,7 +42,7 @@ typedef struct {
 
 /*
  * ================================================================
- * @brief This line below is for the AD5940 Electrochemical EIS frequency operation.
+ * @brief This line below is for the AD5940 Electrochemical impedance spectroscopy (EIS) frequency operation.
  * ================================================================
 */
 
@@ -63,7 +63,7 @@ typedef struct {
 
 /*
  * ================================================================
- * @brief This line below is for the AD5940 Electrochemical EIS parameters.
+ * @brief This line below is for the AD5940 Electrochemical impedance spectroscopy (EIS) parameters.
  * ================================================================
 */
 
