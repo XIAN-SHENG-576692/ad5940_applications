@@ -184,7 +184,7 @@ static AD5940Err _write_sequence_commands(
     const AD5940_ELECTROCHEMICAL_CV_PARAMETERS *const parameters,
     const ADCFilterCfg_Type *const adc_filter,
     const DFTCfg_Type *const dft,
-    const AD5940_ClockConfig *const clock,
+    const AD5940_ClockConfig *const clock_cfg,
     uint32_t DataType
 )
 {
@@ -196,7 +196,7 @@ static AD5940Err _write_sequence_commands(
     error = AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
         adc_filter,
         dft,
-        clock,
+        clock_cfg,
         DataType,
         &sequence_address
     );
@@ -213,11 +213,10 @@ static AD5940Err _write_sequence_commands(
     return AD5940ERR_OK;
 }
 
-#define FIFO_THRESH(parameters) (STEP_NUMBER(parameters))
-
 static AD5940Err _start_wakeup_timer_sequence(
     const AD5940_ELECTROCHEMICAL_CV_PARAMETERS *const parameters,
-    const uint32_t FifoSrc, 
+    const uint32_t FifoSrc,
+    const uint16_t FifoThresh,
     const float LFOSC_frequency
 )
 {
@@ -228,7 +227,7 @@ static AD5940Err _start_wakeup_timer_sequence(
     );
 
     /* Configure FIFO and Sequencer for normal Amperometric Measurement */
-    AD5940_FIFOThrshSet(FIFO_THRESH(parameters));
+    AD5940_FIFOThrshSet((uint32_t) FifoThresh);
     AD5940_FIFOCtrlS(FifoSrc, bTRUE);
 
     AD5940_SEQCtrlS(bTRUE);
@@ -282,7 +281,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
     case 0:
         error = AD5940_ELECTROCHEMICAL_config_afe_lpdac_lptia(
             config->path.lpdac_to_lptia->afe_ref_cfg,
-            config->parameters->e_begin
+            0
         );
         if(error != AD5940ERR_OK) return error;
 
@@ -290,7 +289,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
             config->parameters,
             &(config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg),
             &(config->path.lpdac_to_lptia->dsp_cfg->DftCfg),
-            config->run->clock,
+            config->run->clock_cfg,
             config->run->DataType
         );
         if(error != AD5940ERR_OK) return error;
@@ -306,7 +305,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
     case 1:
         error = AD5940_ELECTROCHEMICAL_config_afe_lpdac_hstia(
             config->path.lpdac_to_hstia->afe_ref_cfg,
-            config->parameters->e_begin
+            0
         );
         if(error != AD5940ERR_OK) return error;
 
@@ -314,7 +313,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
             config->parameters,
             &(config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg),
             &(config->path.lpdac_to_hstia->dsp_cfg->DftCfg),
-            config->run->clock,
+            config->run->clock_cfg,
             config->run->DataType
         );
         if(error != AD5940ERR_OK) return error;
@@ -347,6 +346,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
     error = _start_wakeup_timer_sequence(
         config->parameters,
         config->run->FifoSrc,
+        config->run->FIFO_thresh,
         config->run->LFOSC_frequency
     );
     if(error != AD5940ERR_OK) return error;
@@ -354,47 +354,17 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
     return error;
 }
 
-AD5940Err AD5940_ELECTROCHEMICAL_CV_stop(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count
+AD5940Err AD5940_ELECTROCHEMICAL_CV_get_fifo_count(
+    const AD5940_ELECTROCHEMICAL_CV_PARAMETERS *parameters,
+    uint16_t *const FIFO_count
 )
 {
-    return AD5940_ELECTROCHEMICAL_CV_interrupt(
-        MCU_FIFO_buffer_max_length,
-        MCU_FIFO_buffer, 
-        MCU_FIFO_count,
-        bFALSE
-    );
-}
+    AD5940Err error = AD5940ERR_OK;
 
-AD5940Err AD5940_ELECTROCHEMICAL_CV_interrupt(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count,
-    const BoolFlag isContinue
-)
-{
-    /* Wakeup AFE by read register, read 10 times at most */
-    if(AD5940_WakeUp(10) > 10) return AD5940ERR_WAKEUP;  /* Wakeup Failed */
+    error = AD5940_ELECTROCHEMICAL_CV_PARAMETERS_check(parameters);
+    if(error != AD5940ERR_OK) return error;
 
-    AD5940_SleepKeyCtrlS(SLPKEY_LOCK);  /* We need time to read data from FIFO, so, do not let AD5940 goes to hibernate automatically */
+    *FIFO_count = STEP_NUMBER(parameters);
 
-    *MCU_FIFO_count = AD5940_FIFOGetCnt();
-    if(*MCU_FIFO_count > MCU_FIFO_buffer_max_length) return AD5940ERR_BUFF;
-    AD5940_FIFORd(MCU_FIFO_buffer, *MCU_FIFO_count);
-
-    AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
-
-    if (isContinue)
-    {
-        AD5940_reset_fifocon();
-    }
-    else 
-    {
-        AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Unlock so sequencer can put AD5940 to sleep */
-        AD5940_shutdown_afe_lploop_hsloop_dsp();
-    }
-    
-    return AD5940ERR_OK;
+    return error;
 }

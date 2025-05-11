@@ -29,8 +29,8 @@ static void _get_FIFOCfg_Type(
 }
 
 static void _ad5940_analog_config(
-    const AD5940_TEMPERATURE_ANALOG_CONFIG *const analog,
-    const AD5940_ClockConfig *const clock
+    const AD5940_TEMPERATURE_ANALOG_CONFIG *const analog_cfg,
+    const AD5940_ClockConfig *const clock_cfg
 )
 {
     AFERefCfg_Type aferef_cfg;
@@ -55,16 +55,16 @@ static void _ad5940_analog_config(
     /* Initialize ADC basic function */
     adc_base.ADCMuxP = ADCMUXP_TEMPP;
     adc_base.ADCMuxN = ADCMUXN_TEMPN;
-    adc_base.ADCPga = analog->ADCPga;
+    adc_base.ADCPga = analog_cfg->ADCPga;
     AD5940_ADCBaseCfgS(&adc_base);
     /* Initialize ADC filters ADCRawData-->SINC3-->SINC2+NOTCH */
-    adc_filter.ADCSinc2Osr = analog->ADCSinc2Osr;
-    adc_filter.ADCSinc3Osr = analog->ADCSinc3Osr;
-    adc_filter.ADCAvgNum = analog->ADCAvgNum;    /* Don't care about it. Average function is only used for DFT */
-    adc_filter.ADCRate = clock->ADCRate;         /* If ADC clock is 32MHz, then set it to ADCRATE_1P6MHZ. Default is 16MHz, use ADCRATE_800KHZ. */
-    adc_filter.BpNotch = analog->BpNotch;
-    adc_filter.BpSinc3 = analog->BpSinc3;
-    adc_filter.Sinc2NotchEnable = analog->Sinc2NotchEnable;
+    adc_filter.ADCSinc2Osr = analog_cfg->ADCSinc2Osr;
+    adc_filter.ADCSinc3Osr = analog_cfg->ADCSinc3Osr;
+    adc_filter.ADCAvgNum = analog_cfg->ADCAvgNum;    /* Don't care about it. Average function is only used for DFT */
+    adc_filter.ADCRate = clock_cfg->ADCRate;         /* If ADC clock_cfg is 32MHz, then set it to ADCRATE_1P6MHZ. Default is 16MHz, use ADCRATE_800KHZ. */
+    adc_filter.BpNotch = analog_cfg->BpNotch;
+    adc_filter.BpSinc3 = analog_cfg->BpSinc3;
+    adc_filter.Sinc2NotchEnable = analog_cfg->Sinc2NotchEnable;
     AD5940_ADCFilterCfgS(&adc_filter);
     AD5940_AFECtrlS(AFECTRL_TEMPSPWR, bTRUE);   /* Turn on temperature sensor power */
     return;
@@ -78,8 +78,8 @@ static SEQInfo_Type _temperature_seq_info = {
 static AD5940Err _write_temperature_sequence_commands(
 	const uint32_t start_address,
     uint32_t *const sequence_length,
-    const AD5940_TEMPERATURE_ANALOG_CONFIG *const analog,
-    const AD5940_ClockConfig *const clock
+    const AD5940_TEMPERATURE_ANALOG_CONFIG *const analog_cfg,
+    const AD5940_ClockConfig *const clock_cfg
 )
 {
     AD5940Err error;
@@ -88,12 +88,12 @@ static AD5940Err _write_temperature_sequence_commands(
     uint32_t seq_len;
     ClksCalInfo_Type clks_cal;
     uint32_t WaitClks;
-    clks_cal.DataType = analog->DataType;
+    clks_cal.DataType = analog_cfg->DataType;
     clks_cal.DataCount = 1;             /* Sample one data when wakeup */
-    clks_cal.ADCSinc2Osr = analog->ADCSinc2Osr;
-    clks_cal.ADCSinc3Osr = analog->ADCSinc3Osr;
-    clks_cal.ADCAvgNum = analog->ADCAvgNum;
-    clks_cal.RatioSys2AdcClk = clock->RatioSys2AdcClk; /* Assume ADC clock is same as system clock */
+    clks_cal.ADCSinc2Osr = analog_cfg->ADCSinc2Osr;
+    clks_cal.ADCSinc3Osr = analog_cfg->ADCSinc3Osr;
+    clks_cal.ADCAvgNum = analog_cfg->ADCAvgNum;
+    clks_cal.RatioSys2AdcClk = clock_cfg->RatioSys2AdcClk; /* Assume ADC clock_cfg is same as system clock_cfg */
     AD5940_ClksCalculate(&clks_cal, &WaitClks);
 
     //generate sequence to measure temperature sensor output
@@ -104,7 +104,7 @@ static AD5940Err _write_temperature_sequence_commands(
     AD5940_AFECtrlS(AFECTRL_TEMPCNV|AFECTRL_ADCCNV, bTRUE);  /* Start ADC convert */
     AD5940_SEQGenInsert(SEQ_WAIT(WaitClks));
     AD5940_AFECtrlS(AFECTRL_ADCPWR|AFECTRL_TEMPCNV, bFALSE);    /* Stop ADC */
-    AD5940_SEQGenInsert(SEQ_WAIT(20));			/* Add some delay before put AD5940 to hibernate, needs some clock to move data to FIFO. */
+    AD5940_SEQGenInsert(SEQ_WAIT(20));			/* Add some delay before put AD5940 to hibernate, needs some clock_cfg to move data to FIFO. */
     AD5940_EnterSleepS();/* Goto hibernate */
 
     AD5940_SEQGenCtrl(bFALSE);  /* stop sequence generator */
@@ -123,7 +123,7 @@ static AD5940Err _write_temperature_sequence_commands(
 
 static AD5940Err _write_sequence_commands(
     const AD5940_TEMPERATURE_ANALOG_CONFIG *const config,
-    const AD5940_ClockConfig *const clock
+    const AD5940_ClockConfig *const clock_cfg
 )
 {
     AD5940Err error = AD5940ERR_OK;
@@ -152,7 +152,7 @@ static AD5940Err _write_sequence_commands(
         sequence_address,
         &sequence_commands_length,
         config,
-        clock
+        clock_cfg
     );
     if(error != AD5940ERR_OK) return AD5940ERR_PARA;
     sequence_address += sequence_commands_length;
@@ -178,7 +178,7 @@ static AD5940Err _start_wakeup_timer_sequence(
     wupt_cfg.WuptEn = bTRUE;
     wupt_cfg.WuptEndSeq = WUPTENDSEQ_A;
     wupt_cfg.WuptOrder[0] = _temperature_seq_info.SeqId;
-    wupt_cfg.SeqxSleepTime[_temperature_seq_info.SeqId] = 1; /* The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock. */
+    wupt_cfg.SeqxSleepTime[_temperature_seq_info.SeqId] = 1; /* The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock_cfg. */
     wupt_cfg.SeqxWakeupTime[_temperature_seq_info.SeqId] = (uint32_t)(LFOSC_frequency * ADC_sample_interval * 1E-3F) - 1;
     AD5940_WUPTCfg(&wupt_cfg);
 
@@ -199,12 +199,12 @@ AD5940Err AD5940_TEMPERATURE_start(
     AD5940_clear_GPIO_and_INT_flag();
 
     _ad5940_analog_config(
-        config->analog,
-        config->clock
+        config->analog_cfg,
+        config->clock_cfg
     );
     _write_sequence_commands(
-        config->analog,
-        config->clock
+        config->analog_cfg,
+        config->clock_cfg
     );
 
     // Ensure it is cleared as ad5940.c relies on the INTC flag as well.
@@ -218,7 +218,7 @@ AD5940Err AD5940_TEMPERATURE_start(
     error = _start_wakeup_timer_sequence(
         config->FIFO_thresh,
         config->ADC_sample_interval,
-        config->analog->FifoSrc,
+        config->analog_cfg->FifoSrc,
         config->LFOSC_frequency
     );
     if(error) return error;
@@ -226,25 +226,11 @@ AD5940Err AD5940_TEMPERATURE_start(
     return AD5940ERR_OK;
 }
 
-AD5940Err AD5940_TEMPERATURE_stop(
-    uint32_t* MCU_FIFO_buffer, 
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint16_t *const AD5940_FIFO_count
-)
-{
-    return AD5940_TEMPERATURE_interrupt(
-        MCU_FIFO_buffer,
-        MCU_FIFO_buffer_max_length,
-        0,
-        AD5940_FIFO_count
-    );
-}
-
 AD5940Err AD5940_TEMPERATURE_interrupt(
-    uint32_t* MCU_FIFO_buffer, 
     const uint16_t MCU_FIFO_buffer_max_length,
-    const uint16_t AD5940_FIFO_new_thresh,
-    uint16_t* AD5940_FIFO_count
+    const int32_t AD5940_FIFO_new_thresh,
+    uint32_t* MCU_FIFO_buffer, 
+    uint16_t* MCU_FIFO_count
 )
 {
     /* Wakeup AFE by read register, read 10 times at most */
@@ -252,24 +238,28 @@ AD5940Err AD5940_TEMPERATURE_interrupt(
 
     AD5940_SleepKeyCtrlS(SLPKEY_LOCK);  /* We need time to read data from FIFO, so, do not let AD5940 goes to hibernate automatically */
 
-    *AD5940_FIFO_count = AD5940_FIFOGetCnt();
-    if(*AD5940_FIFO_count > MCU_FIFO_buffer_max_length) return AD5940ERR_BUFF;
-    AD5940_FIFORd(MCU_FIFO_buffer, *AD5940_FIFO_count);
+    *MCU_FIFO_count = AD5940_FIFOGetCnt();
+    if(*MCU_FIFO_count > MCU_FIFO_buffer_max_length) return AD5940ERR_BUFF;
+    AD5940_FIFORd(MCU_FIFO_buffer, *MCU_FIFO_count);
 
+    // Refer to page 107 of the datasheet
     // Enable AFE to enter sleep mode.
     AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Unlock so sequencer can put AD5940 to sleep */
 
     AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
-    if(AD5940_FIFO_new_thresh > 0)
-    {
-        AD5940_reset_fifocon();
-        AD5940_FIFOThrshSet(AD5940_FIFO_new_thresh);
-        AD5940_EnterSleepS();
-    }
-    else
+    if(AD5940_FIFO_new_thresh == 0)
     {
         AD5940_WriteReg(REG_AFE_TEMPSENS, 0x0);
         AD5940_shutdown_afe_lploop_hsloop_dsp();
+    }
+    else
+    {
+        AD5940_reset_fifocon();
+        if(AD5940_FIFO_new_thresh > 0)
+        {
+            AD5940_FIFOThrshSet(AD5940_FIFO_new_thresh);
+        }
+        AD5940_EnterSleepS();
     }
 
     return AD5940ERR_OK;

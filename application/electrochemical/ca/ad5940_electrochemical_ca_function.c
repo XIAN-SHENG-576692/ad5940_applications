@@ -6,7 +6,7 @@
 static AD5940Err _write_sequence_commands(
     const ADCFilterCfg_Type *const adc_filter,
     const DFTCfg_Type *const dft,
-    const AD5940_ClockConfig *const clock,
+    const AD5940_ClockConfig *const clock_cfg,
     uint32_t DataType
 )
 {
@@ -17,7 +17,7 @@ static AD5940Err _write_sequence_commands(
     error = AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
         adc_filter,
         dft,
-        clock,
+        clock_cfg,
         DataType,
         &sequence_address
     );
@@ -28,13 +28,13 @@ static AD5940Err _write_sequence_commands(
 
 static AD5940Err _start_wakeup_timer_sequence(
     const AD5940_ELECTROCHEMICAL_CA_PARAMETERS *parameters,
-    const uint32_t FifoThresh,
-    const uint32_t FifoSrc, 
+    const uint32_t FifoSrc,
+    const uint16_t FifoThresh,
     const float LFOSC_frequency
 )
 {
     /* Configure FIFO and Sequencer for normal Amperometric Measurement */
-    AD5940_FIFOThrshSet(FifoThresh);
+    AD5940_FIFOThrshSet((uint32_t) FifoThresh);
     AD5940_FIFOCtrlS(FifoSrc, bTRUE);
 
     AD5940_SEQCtrlS(bTRUE);
@@ -90,7 +90,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CA_start(
         error = _write_sequence_commands(
             &(config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg),
             &(config->path.lpdac_to_lptia->dsp_cfg->DftCfg),
-            config->run->clock,
+            config->run->clock_cfg,
             config->run->DataType
         );
         if(error != AD5940ERR_OK) return error;
@@ -113,7 +113,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_CA_start(
         error = _write_sequence_commands(
             &(config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg),
             &(config->path.lpdac_to_hstia->dsp_cfg->DftCfg),
-            config->run->clock,
+            config->run->clock_cfg,
             config->run->DataType
         );
         if(error != AD5940ERR_OK) return error;
@@ -145,61 +145,11 @@ AD5940Err AD5940_ELECTROCHEMICAL_CA_start(
 
     error = _start_wakeup_timer_sequence(
         config->parameters,
-        config->fifo_thresh,
         config->run->FifoSrc,
+        config->run->FIFO_thresh,
         config->run->LFOSC_frequency
     );
     if(error != AD5940ERR_OK) return error;
 
     return error;
-}
-
-AD5940Err AD5940_ELECTROCHEMICAL_CA_stop(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count
-)
-{
-    return AD5940_ELECTROCHEMICAL_CA_interrupt(
-        MCU_FIFO_buffer_max_length,
-        0,
-        MCU_FIFO_buffer, 
-        MCU_FIFO_count
-    );
-}
-
-/**
- * This function is based on the example in the AppCHRONOAMPISR() function found in
- * ad5940-examples/examples/AD5940_ChronoAmperometric/ChronoAmperometric.c.
- */
-AD5940Err AD5940_ELECTROCHEMICAL_CA_interrupt(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    const uint16_t AD5940_FIFO_new_thresh,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count
-)
-{
-    /* Wakeup AFE by read register, read 10 times at most */
-    if(AD5940_WakeUp(10) > 10) return AD5940ERR_WAKEUP;  /* Wakeup Failed */
-
-    AD5940_SleepKeyCtrlS(SLPKEY_LOCK);  /* We need time to read data from FIFO, so, do not let AD5940 goes to hibernate automatically */
-
-    *MCU_FIFO_count = AD5940_FIFOGetCnt();
-    if(*MCU_FIFO_count > MCU_FIFO_buffer_max_length) return AD5940ERR_BUFF;
-    AD5940_FIFORd(MCU_FIFO_buffer, *MCU_FIFO_count);
-
-    AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
-
-    if(AD5940_FIFO_new_thresh > 0)
-    {
-        AD5940_reset_fifocon();
-        AD5940_FIFOThrshSet(AD5940_FIFO_new_thresh);
-    }
-    else
-    {
-        AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Unlock so sequencer can put AD5940 to sleep */
-        AD5940_shutdown_afe_lploop_hsloop_dsp();
-    }
-    
-    return 0;
 }

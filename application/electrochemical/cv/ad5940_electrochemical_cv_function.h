@@ -48,21 +48,6 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
 );
 
 /**
- * @brief Stops the Cyclic Voltammetry (CV) operation and shuts down the AD5940.
- * 
- * @param MCU_FIFO_buffer_max_length Maximum length of the MCU FIFO buffer.
- * @param MCU_FIFO_buffer            Pointer to the buffer where remaining FIFO data will be stored.
- * @param MCU_FIFO_count             Pointer to a variable to retrieve the remaining FIFO count.
- * 
- * @return AD5940Err                 Error code indicating success (0) or failure.
- */
-AD5940Err AD5940_ELECTROCHEMICAL_CV_stop(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count
-);
-
-/**
  * @brief Handles FIFO interrupts during Cyclic Voltammetry (CV) operation.
  * 
  * @param MCU_FIFO_buffer_max_length Maximum length of the MCU FIFO buffer.

@@ -6,10 +6,10 @@ void AD5940_clear_GPIO_and_INT_flag(void)
     AD5940_INTCCfg(AFEINTC_0, AFEINTSRC_ALLINT, bFALSE);
     AD5940_INTCClrFlag(AFEINTSRC_ALLINT);
 
-    AGPIOCfg_Type gpio_cfg = {0};
+    AGPIOCfg_Type gpio_cfg = {};
     AD5940_AGPIOCfg(&gpio_cfg);
 
-    return AD5940ERR_OK;
+    return;
 }
 
 void AD5940_get_AfeIntcSel_by_AGPIOCfg_Type(

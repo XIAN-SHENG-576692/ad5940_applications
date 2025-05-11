@@ -1,35 +1,11 @@
-#pragma once
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-#include "ad5940_temperature_struct.h"
+#include "ad5940.h"
 
 /**
- * @brief Starts the temperature measurement process on the AD5940.
- *
- * This function initializes the AD5940 for temperature measurement by configuring GPIOs, 
- * ADC settings, FIFO thresholds, and interrupts. It uses the specified configuration 
- * structure to define measurement parameters such as sampling frequency and FIFO settings.
- *
- * @param config A pointer to an `AD5940_TEMPERATURE_START_CONFIG` structure that 
- *               contains all the required configuration parameters.
- * 
- * @return AD5940Err Returns an error code of type `AD5940Err`. A value of 0 indicates 
- *                   success, while any other value represents an error during initialization.
- */
-AD5940Err AD5940_TEMPERATURE_start(
-    const AD5940_TEMPERATURE_START_CONFIG *const config
-);
-
-/**
- * @brief Handles FIFO interrupts during temperature measurement on the AD5940.
+ * @brief Handles FIFO interrupts during electrochemical measurement on the AD5940.
  *
  * This function processes FIFO interrupts by reading data from the AD5940 FIFO buffer, 
  * transferring it to the MCU buffer, and optionally updating the FIFO threshold. 
- * If the new FIFO threshold is set to 0, the AD5940 will shut down temperature measurements.
+ * If the new FIFO threshold is set to 0, the AD5940 will shut down electrochemical measurements.
  *
  * @param MCU_FIFO_buffer_max_length    Maximum allowable length of the MCU buffer.
  * @param AD5940_FIFO_new_thresh        New FIFO threshold value to set.
@@ -42,13 +18,9 @@ AD5940Err AD5940_TEMPERATURE_start(
  * @return AD5940Err Returns an error code of type `AD5940Err`. A value of 0 indicates success, 
  *                   while any other value represents an error encountered during interrupt handling.
  */
-AD5940Err AD5940_TEMPERATURE_interrupt(
+AD5940Err AD5940_ELECTROCHEMICAL_interrupt(
     const uint16_t MCU_FIFO_buffer_max_length,
     const int32_t AD5940_FIFO_new_thresh,
     uint32_t* MCU_FIFO_buffer, 
     uint16_t* MCU_FIFO_count
 );
-
-#ifdef __cplusplus
-}
-#endif

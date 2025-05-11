@@ -12,10 +12,10 @@
  */
 typedef struct 
 {
-    const AD5940_ELECTROCHEMICAL_AFERefCfg_Type *afe_ref_cfg;   /**< Pointer to AFE reference configuration. */
-    const AD5940_ELECTROCHEMICAL_LPDACfg_Type *lpdac_cfg;       /**< Pointer to LPPA configuration. */
-    const AD5940_ELECTROCHEMICAL_LPTIACfg_Type *lptia_cfg;      /**< Pointer to LPTIA configuration. */
-    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *dsp_cfg;          /**< Pointer to DSP configuration. */
+    const AD5940_ELECTROCHEMICAL_AFERefCfg_Type *afe_ref_cfg;           /**< Pointer to AFE reference configuration. */
+    const AD5940_ELECTROCHEMICAL_LPDACfg_Type *lpdac_cfg;               /**< Pointer to LPPA configuration. */
+    const AD5940_ELECTROCHEMICAL_LPTIACfg_Type *lptia_cfg;              /**< Pointer to LPTIA configuration. */
+    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *dsp_cfg;                  /**< Pointer to DSP configuration. */
 } 
 AD5940_ELECTROCHEMICAL_LPDAC_TO_LPTIA_CONFIG;
 
@@ -25,10 +25,10 @@ AD5940_ELECTROCHEMICAL_LPDAC_TO_LPTIA_CONFIG;
 typedef struct 
 {
     const AD5940_ELECTROCHEMICAL_ELECTRODE_ROUTING *electrode_routing;
-    const AD5940_ELECTROCHEMICAL_AFERefCfg_Type *afe_ref_cfg;   /**< Pointer to AFE reference configuration. */
-    const AD5940_ELECTROCHEMICAL_LPDACfg_Type *lpdac_cfg;       /**< Pointer to LPPA configuration. */
-    const AD5940_ELECTROCHEMICAL_HSTIACfg_Type *hstia_cfg;      /**< Pointer to HSTIA configuration. */
-    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *dsp_cfg;          /**< Pointer to DSP configuration. */
+    const AD5940_ELECTROCHEMICAL_AFERefCfg_Type *afe_ref_cfg;           /**< Pointer to AFE reference configuration. */
+    const AD5940_ELECTROCHEMICAL_LPDACfg_Type *lpdac_cfg;               /**< Pointer to LPPA configuration. */
+    const AD5940_ELECTROCHEMICAL_HSTIACfg_Type *hstia_cfg;              /**< Pointer to HSTIA configuration. */
+    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *dsp_cfg;                  /**< Pointer to DSP configuration. */
 } 
 AD5940_ELECTROCHEMICAL_LPDAC_TO_HSTIA_CONFIG;
 
@@ -40,6 +40,15 @@ typedef struct
     // TODO
 }
 AD5940_ELECTROCHEMICAL_HSDAC_MMR_TO_HSTIA_CONFIG;
+
+/**
+ * @brief Configuration HSDAC_SIN to HSTIA.
+ */
+typedef struct 
+{
+    // TODO
+}
+AD5940_ELECTROCHEMICAL_HSDAC_SIN_TO_HSTIA_CONFIG;
  
  #ifdef __cplusplus
  }

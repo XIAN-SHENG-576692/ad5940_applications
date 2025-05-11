@@ -44,7 +44,7 @@ void AD5940_ELECTROCHEMICAL_UTILITY_get_ADC_seq_info(
  *                         See `ADCFilterCfg_Type` for details.
  * @param dft              Pointer to the DFT configuration structure. 
  *                         See `DFTCfg_Type` for details.
- * @param clock            Clock configuration. Obtainable via 
+ * @param clock_cfg            Clock configuration. Obtainable via 
  *                         @ref AD5940_set_active_power 
  *                         in utility/ad5940_utility_power.h.
  * @param DataType         The data type configuration for ADC outputs. 
@@ -58,7 +58,7 @@ void AD5940_ELECTROCHEMICAL_UTILITY_get_ADC_seq_info(
 AD5940Err AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
     const ADCFilterCfg_Type *const adc_filter,
     const DFTCfg_Type *const dft,
-    const AD5940_ClockConfig *const clock,
+    const AD5940_ClockConfig *const clock_cfg,
     const uint32_t DataType,
     uint32_t *const sequence_address
 );

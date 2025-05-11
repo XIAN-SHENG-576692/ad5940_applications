@@ -47,7 +47,7 @@ static void _get_ClksCalInfo_Type(
     ClksCalInfo_Type *const type,
     const ADCFilterCfg_Type *const adc_filter,
     const DFTCfg_Type *const dft,
-    const AD5940_ClockConfig *const clock,
+    const AD5940_ClockConfig *const clock_cfg,
     uint32_t DataType,
     uint32_t DataCount
 )
@@ -58,7 +58,7 @@ static void _get_ClksCalInfo_Type(
     type->DataType = DataType;
     type->DataCount = DataCount;                   /* Sample one point everytime */
     type->DftSrc = dft->DftSrc;
-    type->RatioSys2AdcClk = clock->RatioSys2AdcClk;
+    type->RatioSys2AdcClk = clock_cfg->RatioSys2AdcClk;
     return;
 }
 
@@ -71,7 +71,7 @@ static AD5940Err _write_ADC_sequence_commands(
     uint32_t *const sequence_length,
     const ADCFilterCfg_Type *const adc_filter,
     const DFTCfg_Type *const dft,
-    const AD5940_ClockConfig *const clock,
+    const AD5940_ClockConfig *const clock_cfg,
     uint32_t DataType
 )
 {
@@ -87,7 +87,7 @@ static AD5940Err _write_ADC_sequence_commands(
         &clks_cal,
         adc_filter,
         dft,
-        clock,
+        clock_cfg,
         DataType,
         1
     );
@@ -142,7 +142,7 @@ static void _start()
 AD5940Err AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
     const ADCFilterCfg_Type *const adc_filter,
     const DFTCfg_Type *const dft,
-    const AD5940_ClockConfig *const clock,
+    const AD5940_ClockConfig *const clock_cfg,
     const uint32_t DataType,
     uint32_t *const sequence_address
 )
@@ -159,7 +159,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
         &sequence_commands_length,
         adc_filter,
         dft,
-        clock,
+        clock_cfg,
         DataType
     );
     if(error != AD5940ERR_OK) return AD5940ERR_PARA;

@@ -48,33 +48,18 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
 );
 
 /**
- * @brief Stops the Differential Pulse Voltammetry (DPV) operation and shuts down the AD5940.
+ * @brief Calculates the number of remaining FIFO data points required to complete the 
+ *        Differential Pulse Voltammetry (DPV) operation.
  * 
- * @param MCU_FIFO_buffer_max_length Maximum length of the MCU FIFO buffer.
- * @param MCU_FIFO_buffer            Pointer to the buffer where remaining FIFO data will be stored.
- * @param MCU_FIFO_count             Pointer to a variable to retrieve the remaining FIFO count.
- * 
- * @return AD5940Err                 Error code indicating success (0) or failure.
- */
-AD5940Err AD5940_ELECTROCHEMICAL_DPV_stop(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count
-);
-
-/**
- * @brief Handles FIFO interrupts during Differential Pulse Voltammetry (DPV) operation.
- * 
- * @param MCU_FIFO_buffer_max_length Maximum length of the MCU FIFO buffer.
- * @param MCU_FIFO_buffer            Pointer to the buffer to store FIFO data.
- * @param MCU_FIFO_count             Pointer to retrieve the current FIFO count.
+ * @param parameters    DPV parameter settings.
+ * @param FIFO_count    Pointer to a variable where the calculated remaining FIFO count 
+ *                      will be stored.
  * 
  * @return AD5940Err                 Error code indicating success (0) or failure.
  */
-AD5940Err AD5940_ELECTROCHEMICAL_DPV_interrupt(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count
+AD5940Err AD5940_ELECTROCHEMICAL_DPV_get_fifo_count(
+    const AD5940_ELECTROCHEMICAL_DPV_PARAMETERS *parameters,
+    uint16_t *const FIFO_count
 );
 
 /**
