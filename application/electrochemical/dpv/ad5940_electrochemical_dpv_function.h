@@ -47,48 +47,6 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
     const AD5940_ELECTROCHEMICAL_DPV_CONFIG *const config
 );
 
-/**
- * @brief Calculates the number of remaining FIFO data points required to complete the 
- *        Differential Pulse Voltammetry (DPV) operation.
- * 
- * @param parameters    DPV parameter settings.
- * @param FIFO_count    Pointer to a variable where the calculated remaining FIFO count 
- *                      will be stored.
- * 
- * @return AD5940Err                 Error code indicating success (0) or failure.
- */
-AD5940Err AD5940_ELECTROCHEMICAL_DPV_get_fifo_count(
-    const AD5940_ELECTROCHEMICAL_DPV_PARAMETERS *parameters,
-    uint16_t *const FIFO_count
-);
-
-/**
- * @brief Converts ADC data to current values for Differential Pulse Voltammetry (DPV).
- * 
- * This function processes ADC data retrieved from the AD5940 and converts it to current 
- * values based on the provided calibration and configuration parameters. It is used in 
- * Differential Pulse Voltammetry (DPV) experiments.
- * 
- * @param adc_data_step         The ADC data retrieved from the FIFO.
- * @param adc_data_pulse        The ADC data retrieved from the FIFO.
- * @param RtiaCalValue          Pointer to the RTIA calibration value. This parameter is obtained from RTIA calibration functions 
- *                              like @ref AD5940_HSRtiaCal or @ref AD5940_LPRtiaCal.
- * @param ADC_PGA_gain          ADC Programmable Gain Amplifier (PGA) gain value. Refer to @ref ADCPGA_Const.
- * @param ADC_reference_volt    Reference voltage used for the ADC (in volts). Refer to the AD5940 datasheet for details.
- * @param current               Pointer to an array where the calculated current values (in microamperes) will be stored.
- *
- * @return AD5940Err            Returns an error code of type `AD5940Err`. A value of 0 indicates success, while other values 
- *                              indicate specific errors encountered during the conversion process.
- */
-AD5940Err AD5940_ELECTROCHEMICAL_DPV_convert_ADC_to_current(
-    const uint32_t adc_data_step,
-    const uint32_t adc_data_pulse,
-    const fImpPol_Type *const RtiaCalValue,
-    const uint32_t ADC_PGA_gain,
-    const float ADC_reference_volt,
-    int32_t *const current
-);
-
 #ifdef __cplusplus
 }
 #endif

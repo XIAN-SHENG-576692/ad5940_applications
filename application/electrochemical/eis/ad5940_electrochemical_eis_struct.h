@@ -88,6 +88,21 @@ AD5940Err AD5940_ELECTROCHEMICAL_EIS_PARAMETERS_check(
     const AD5940_ELECTROCHEMICAL_EIS_PARAMETERS *const parameters
 );
 
+/**
+ * @brief Calculates the number of remaining FIFO data points required to complete the 
+ *        Electrochemical impedance spectroscopy (EIS) operation.
+ * 
+ * @param parameters    DPV parameter settings.
+ * @param FIFO_count    Pointer to a variable where the calculated remaining FIFO count 
+ *                      will be stored.
+ * 
+ * @return AD5940Err                 Error code indicating success (0) or failure.
+ */
+AD5940Err AD5940_ELECTROCHEMICAL_EIS_get_fifo_count(
+    const AD5940_ELECTROCHEMICAL_EIS_PARAMETERS *parameters,
+    uint16_t *const FIFO_count
+);
+
 #ifdef __cplusplus
 }
 #endif

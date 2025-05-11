@@ -47,23 +47,6 @@ AD5940Err AD5940_ELECTROCHEMICAL_CV_start(
     const AD5940_ELECTROCHEMICAL_CV_CONFIG *const config
 );
 
-/**
- * @brief Handles FIFO interrupts during Cyclic Voltammetry (CV) operation.
- * 
- * @param MCU_FIFO_buffer_max_length Maximum length of the MCU FIFO buffer.
- * @param MCU_FIFO_buffer            Pointer to the buffer to store FIFO data.
- * @param MCU_FIFO_count             Pointer to retrieve the current FIFO count.
- * @param isContinue                 Flag to indicate whether to continue the CV operation.
- * 
- * @return AD5940Err                 Error code indicating success (0) or failure.
- */
-AD5940Err AD5940_ELECTROCHEMICAL_CV_interrupt(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    uint32_t *const MCU_FIFO_buffer, 
-    uint16_t *const MCU_FIFO_count,
-    const BoolFlag isContinue
-);
-
 #ifdef __cplusplus
 }
 #endif
