@@ -1,6 +1,6 @@
 #include "ad5940_electrochemical_interrupt.h"
 
-AD5940Err AD5940_TEMPERATURE_interrupt(
+AD5940Err AD5940_ELECTROCHEMICAL_interrupt(
     const uint16_t MCU_FIFO_buffer_max_length,
     const int32_t AD5940_FIFO_new_thresh,
     uint32_t* MCU_FIFO_buffer, 
