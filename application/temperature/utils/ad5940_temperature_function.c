@@ -259,7 +259,6 @@ AD5940Err AD5940_TEMPERATURE_interrupt(
         {
             AD5940_FIFOThrshSet(AD5940_FIFO_new_thresh);
         }
-        AD5940_EnterSleepS();
     }
 
     return AD5940ERR_OK;

@@ -1,5 +1,7 @@
 #include "ad5940_electrochemical_interrupt.h"
 
+#include "ad5940_utils.h"
+
 AD5940Err AD5940_ELECTROCHEMICAL_interrupt(
     const uint16_t MCU_FIFO_buffer_max_length,
     const int32_t AD5940_FIFO_new_thresh,
@@ -33,7 +35,6 @@ AD5940Err AD5940_ELECTROCHEMICAL_interrupt(
         {
             AD5940_FIFOThrshSet(AD5940_FIFO_new_thresh);
         }
-        AD5940_EnterSleepS();
     }
 
     return AD5940ERR_OK;
