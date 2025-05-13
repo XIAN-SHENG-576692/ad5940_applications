@@ -3,7 +3,8 @@
 
 AD5940Err AD5940_MAIN_init(
     uint32_t *const sequencer_generator_buffer, 
-    const uint16_t sequencer_generator_buffer_length
+    const uint16_t sequencer_generator_buffer_length,
+    const uint8_t reset_option
 )
 {
     AD5940Err error = AD5940ERR_OK;
@@ -14,9 +15,16 @@ AD5940Err AD5940_MAIN_init(
     );
     if(error) return error;
 
-    /* Use hardware reset */
-    AD5940_HWReset();
-    // AD5940_SoftRst();
+    // Reset
+    switch (reset_option)
+    {
+    case 1:
+        AD5940_HWReset();
+        break;
+    case 2:
+        AD5940_SoftRst();
+        break;
+    }
 
     /* Platform configuration */
     AD5940_Initialize();

@@ -23,6 +23,10 @@ extern "C"
  * 
  * @param sequence_generator_buffer Pointer to the buffer used for sequence generation.
  * @param sequence_generator_buffer_length Length of the sequence generator buffer (in words).
+ * @param reset_option Specifies how the AD5940 should be reset:
+ *                     - 0: Do not reset
+ *                     - 1: Perform a hardware reset
+ *                     - 2: Perform a software reset
  * 
  * @attention
  * @ref AD5940_set_sequence_generator_buffer() in the 
@@ -33,8 +37,9 @@ extern "C"
  * the initialization process.
  */
 AD5940Err AD5940_MAIN_init(
-    uint32_t *const sequence_generator_buffer, 
-    const uint16_t sequence_generator_buffer_length
+    uint32_t *const sequence_generator_buffer,
+    const uint16_t sequence_generator_buffer_length,
+    const uint8_t reset_option
 );
 
 /**
