@@ -1,4 +1,4 @@
-#include "ad5940_electrochemical_interrupt.h"
+#include "ad5940_irq_handler.h"
 
 #include "ad5940_utils.h"
 
