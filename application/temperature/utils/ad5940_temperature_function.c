@@ -162,7 +162,7 @@ static AD5940Err _write_sequence_commands(
 
 static AD5940Err _start_wakeup_timer_sequence(
     const uint32_t FIFO_thresh, 
-    const uint16_t sampling_interval,
+    const float sampling_interval,
     const uint32_t FifoSrc, 
     const float LFOSC_frequency
 )
@@ -179,7 +179,7 @@ static AD5940Err _start_wakeup_timer_sequence(
     wupt_cfg.WuptEndSeq = WUPTENDSEQ_A;
     wupt_cfg.WuptOrder[0] = _temperature_seq_info.SeqId;
     wupt_cfg.SeqxSleepTime[_temperature_seq_info.SeqId] = 1; /* The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock_cfg. */
-    wupt_cfg.SeqxWakeupTime[_temperature_seq_info.SeqId] = (uint32_t)(LFOSC_frequency * sampling_interval * 1E-3F) - 1;
+    wupt_cfg.SeqxWakeupTime[_temperature_seq_info.SeqId] = (uint32_t)(LFOSC_frequency * sampling_interval) - 1;
     AD5940_WUPTCfg(&wupt_cfg);
 
     return AD5940ERR_OK;
