@@ -27,34 +27,45 @@ typedef struct
 }
 AD5940_TEMPERATURE_ANALOG_CONFIG;
 
+typedef struct
+{
+    uint16_t FIFO_thresh;                   /**< FIFO threshold value. Interrupt is triggered when this threshold is reached. */
+    float LFOSC_frequency;                  /**< Low-frequency oscillator frequency, used for internal timing.
+                                                 Obtainable via @ref AD5940_LFOSCMeasure in library/ad5940.h.*/
+    const AD5940_ClockConfig *clock_cfg;    /**< Pointer to clock configuration.
+                                                 Obtainable via
+                                                 @ref AD5940_set_active_power
+                                                 in utility/ad5940_utility_power.h. */
+    const AGPIOCfg_Type *agpio_cfg;         /**< Pointer to GPIO configuration.
+                                                 - Refer to datasheet pages 112 and 122.
+                                                 - Configure GPIO for interrupts based on PCB design. */
+}
+AD5940_TEMPERATURE_RUN_CONFIG;
+
+typedef struct
+{
+    uint16_t sampling_interval;     /**< Sampling interval in microseconds. */
+    uint32_t TEMPSENS;              /**< Temperature sensor configuration. Refer to page 57 of the datasheet:
+                                         ```
+                                         For improved accuracy, configure the temperature sensor in chop
+                                         mode via TEMPCON0, Bits[3:1]. If chopping is selected, the user
+                                         must ensure an even number of ADC conversions take place on the
+                                         temperature sensor channel and that these results are averaged.
+                                         ```
+                                         See TEMPCON0 configuration details on page 61 of the datasheet. */
+}
+AD5940_TEMPERATURE_PARAMETERS;
+
 /**
  * @brief Configuration structure for starting the temperature measurement on the AD5940.
  */
 typedef struct
 {
-    uint16_t FIFO_thresh;                                   /**< FIFO threshold value. Interrupt is triggered when this threshold is reached. */
-    uint16_t ADC_sample_interval;                           /**< ADC sampling interval in microseconds. */
 
-    float LFOSC_frequency;                                  /**< Low-frequency oscillator frequency, used for internal timing. 
-                                                                Obtainable via @ref AD5940_LFOSCMeasure in library/ad5940.h.*/
-
-    const AD5940_ClockConfig *clock_cfg;                    /**< Clock configuration. Obtainable via 
-                                                                @ref AD5940_set_active_power 
-                                                                in utility/ad5940_utility_power.h. */
-
-    const AGPIOCfg_Type *agpio_cfg;                         /**< GPIO configuration for temperature measurement. */
-
+    const AD5940_TEMPERATURE_PARAMETERS *parameters;
     const AD5940_TEMPERATURE_ANALOG_CONFIG *analog_cfg;     /**< Analog configuration structure. 
-                                                                Refer to @ref AD5940_TEMPERATURE_ANALOG_CONFIG. */
-
-    uint32_t TEMPSENS;                                      /**< Temperature sensor configuration. Refer to page 57 of the datasheet:
-                                                                ```
-                                                                For improved accuracy, configure the temperature sensor in chop
-                                                                mode via TEMPCON0, Bits[3:1]. If chopping is selected, the user
-                                                                must ensure an even number of ADC conversions take place on the
-                                                                temperature sensor channel and that these results are averaged.
-                                                                ```
-                                                                See TEMPCON0 configuration details on page 61 of the datasheet. */
+                                                                 Refer to @ref AD5940_TEMPERATURE_ANALOG_CONFIG. */
+    const AD5940_TEMPERATURE_RUN_CONFIG *run_cfg;           /**< Execution and timing configuration */
 }
 AD5940_TEMPERATURE_START_CONFIG;
 

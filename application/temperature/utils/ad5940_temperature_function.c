@@ -162,7 +162,7 @@ static AD5940Err _write_sequence_commands(
 
 static AD5940Err _start_wakeup_timer_sequence(
     const uint32_t FIFO_thresh, 
-    const uint16_t ADC_sample_interval,
+    const uint16_t sampling_interval,
     const uint32_t FifoSrc, 
     const float LFOSC_frequency
 )
@@ -179,7 +179,7 @@ static AD5940Err _start_wakeup_timer_sequence(
     wupt_cfg.WuptEndSeq = WUPTENDSEQ_A;
     wupt_cfg.WuptOrder[0] = _temperature_seq_info.SeqId;
     wupt_cfg.SeqxSleepTime[_temperature_seq_info.SeqId] = 1; /* The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock_cfg. */
-    wupt_cfg.SeqxWakeupTime[_temperature_seq_info.SeqId] = (uint32_t)(LFOSC_frequency * ADC_sample_interval * 1E-3F) - 1;
+    wupt_cfg.SeqxWakeupTime[_temperature_seq_info.SeqId] = (uint32_t)(LFOSC_frequency * sampling_interval * 1E-3F) - 1;
     AD5940_WUPTCfg(&wupt_cfg);
 
     return AD5940ERR_OK;
@@ -194,72 +194,34 @@ AD5940Err AD5940_TEMPERATURE_start(
     /* Wakeup AFE by read register, read 10 times at most */
     if(AD5940_WakeUp(10) > 10) return AD5940ERR_WAKEUP;  /* Wakeup Failed */
 
-    AD5940_WriteReg(REG_AFE_TEMPSENS, config->TEMPSENS);
+    AD5940_WriteReg(REG_AFE_TEMPSENS, config->parameters->TEMPSENS);
     
     AD5940_clear_GPIO_and_INT_flag();
 
     _ad5940_analog_config(
         config->analog_cfg,
-        config->clock_cfg
+        config->run_cfg->clock_cfg
     );
     _write_sequence_commands(
         config->analog_cfg,
-        config->clock_cfg
+        config->run_cfg->clock_cfg
     );
 
     // Ensure it is cleared as ad5940.c relies on the INTC flag as well.
     AD5940_INTCClrFlag(AFEINTSRC_ALLINT);
 
     AGPIOCfg_Type agpio_cfg;
-    memcpy(&agpio_cfg, config->agpio_cfg, sizeof(AGPIOCfg_Type));
+    memcpy(&agpio_cfg, config->run_cfg->agpio_cfg, sizeof(AGPIOCfg_Type));
     AD5940_set_INTCCfg_by_AGPIOCfg_Type(&agpio_cfg, AFEINTSRC_DATAFIFOTHRESH);
     AD5940_AGPIOCfg(&agpio_cfg);
 
     error = _start_wakeup_timer_sequence(
-        config->FIFO_thresh,
-        config->ADC_sample_interval,
+        config->run_cfg->FIFO_thresh,
+        config->parameters->sampling_interval,
         config->analog_cfg->FifoSrc,
-        config->LFOSC_frequency
+        config->run_cfg->LFOSC_frequency
     );
     if(error) return error;
 	
-    return AD5940ERR_OK;
-}
-
-AD5940Err AD5940_TEMPERATURE_interrupt(
-    const uint16_t MCU_FIFO_buffer_max_length,
-    const int32_t AD5940_FIFO_new_thresh,
-    uint32_t* MCU_FIFO_buffer, 
-    uint16_t* MCU_FIFO_count
-)
-{
-    /* Wakeup AFE by read register, read 10 times at most */
-    if(AD5940_WakeUp(10) > 10) return AD5940ERR_WAKEUP;  /* Wakeup Failed */
-
-    AD5940_SleepKeyCtrlS(SLPKEY_LOCK);  /* We need time to read data from FIFO, so, do not let AD5940 goes to hibernate automatically */
-
-    *MCU_FIFO_count = AD5940_FIFOGetCnt();
-    if(*MCU_FIFO_count > MCU_FIFO_buffer_max_length) return AD5940ERR_BUFF;
-    AD5940_FIFORd(MCU_FIFO_buffer, *MCU_FIFO_count);
-
-    // Refer to page 107 of the datasheet
-    // Enable AFE to enter sleep mode.
-    AD5940_SleepKeyCtrlS(SLPKEY_UNLOCK); /* Unlock so sequencer can put AD5940 to sleep */
-
-    AD5940_INTCClrFlag(AFEINTSRC_DATAFIFOTHRESH);
-    if(AD5940_FIFO_new_thresh == 0)
-    {
-        AD5940_WriteReg(REG_AFE_TEMPSENS, 0x0);
-        AD5940_shutdown_afe_lploop_hsloop_dsp();
-    }
-    else
-    {
-        AD5940_reset_fifocon();
-        if(AD5940_FIFO_new_thresh > 0)
-        {
-            AD5940_FIFOThrshSet(AD5940_FIFO_new_thresh);
-        }
-    }
-
     return AD5940ERR_OK;
 }
