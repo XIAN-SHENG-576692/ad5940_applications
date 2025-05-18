@@ -39,7 +39,9 @@ extern "C"
 AD5940Err AD5940_ELECTROCHEMICAL_config_lpdac_lptia_adc(
     const AD5940_ELECTROCHEMICAL_LPDACfg_Type *const lpdac_cfg,
     const AD5940_ELECTROCHEMICAL_LPTIACfg_Type *const lptia_cfg,
-    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const dsp_cfg
+    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const dsp_cfg,
+    const uint32_t ADCRate,
+    const BoolFlag WGClkEnable
 );
 
 /**
@@ -57,7 +59,9 @@ AD5940Err AD5940_ELECTROCHEMICAL_config_lpdac_hstia_adc(
     const AD5940_ELECTROCHEMICAL_LPDACfg_Type *const lpdac_cfg,
     const AD5940_ELECTROCHEMICAL_HSTIACfg_Type *const hstia_cfg,
     const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const dsp_cfg,
-    const AD5940_ELECTROCHEMICAL_ELECTRODE_ROUTING *const electrode_routing
+    const AD5940_ELECTROCHEMICAL_ELECTRODE_ROUTING *const electrode_routing,
+    const uint32_t ADCRate,
+    const BoolFlag WGClkEnable
 );
 
 // /**

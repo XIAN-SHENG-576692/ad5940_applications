@@ -148,9 +148,12 @@ static AD5940Err _write_DAC_sequence_commands(
 
 static AD5940Err _write_sequence_commands(
     const AD5940_ELECTROCHEMICAL_DPV_PARAMETERS *const parameters,
-    const ADCFilterCfg_Type *const adc_filter,
-    const DFTCfg_Type *const dft,
     const AD5940_ClockConfig *const clock_cfg,
+    const DFTCfg_Type *const dft,
+    const uint32_t ADCAvgNum,
+    const uint32_t ADCSinc2Osr,
+    const uint32_t ADCSinc3Osr,
+    const BoolFlag BpNotch,
     const uint32_t DataType
 )
 {
@@ -160,9 +163,13 @@ static AD5940Err _write_sequence_commands(
     uint32_t sequence_commands_length = 0;
 
     error = AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
-        adc_filter,
-        dft,
         clock_cfg,
+        dft,
+        ADCAvgNum,
+        ADCSinc2Osr,
+        ADCSinc3Osr,
+        BpNotch,
+        1,
         DataType,
         &sequence_address
     );
@@ -183,7 +190,7 @@ static AD5940Err _start_wakeup_timer_sequence(
     const AD5940_ELECTROCHEMICAL_DPV_PARAMETERS *const parameters,
     const uint32_t FifoSrc,
     const uint16_t FifoThresh,
-    const float LFOSC_frequency
+    const float LFOSCClkFreq
 )
 {
     /* Configure FIFO and Sequencer for normal Amperometric Measurement */
@@ -213,11 +220,11 @@ static AD5940Err _start_wakeup_timer_sequence(
 	wupt_cfg.WuptOrder[2] = DAC_PULSE_SEQID;
 	wupt_cfg.WuptOrder[3] = ADC_seq_info->SeqId;
 	wupt_cfg.SeqxSleepTime[ADC_seq_info->SeqId] = 1;        // The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock.
-	wupt_cfg.SeqxWakeupTime[ADC_seq_info->SeqId] = (uint32_t)(LFOSC_frequency * SAMPLE_DELAY) - 1;
+	wupt_cfg.SeqxWakeupTime[ADC_seq_info->SeqId] = (uint32_t)(LFOSCClkFreq * SAMPLE_DELAY) - 1;
 	wupt_cfg.SeqxSleepTime[DAC_STEP_SEQID] = 1;        // The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock.
-	wupt_cfg.SeqxWakeupTime[DAC_STEP_SEQID] = (uint32_t)(LFOSC_frequency * (parameters->t_pulse - SAMPLE_DELAY)) - 1;
+	wupt_cfg.SeqxWakeupTime[DAC_STEP_SEQID] = (uint32_t)(LFOSCClkFreq * (parameters->t_pulse - SAMPLE_DELAY)) - 1;
 	wupt_cfg.SeqxSleepTime[DAC_PULSE_SEQID] = 1;  // The minimum value is 1. Do not set it to zero. Set it to 1 will spend 2 32kHz clock.
-	wupt_cfg.SeqxWakeupTime[DAC_PULSE_SEQID] = (uint32_t)(LFOSC_frequency * (t_interval - parameters->t_pulse - SAMPLE_DELAY)) - 1;
+	wupt_cfg.SeqxWakeupTime[DAC_PULSE_SEQID] = (uint32_t)(LFOSCClkFreq * (t_interval - parameters->t_pulse - SAMPLE_DELAY)) - 1;
     AD5940_WUPTCfg(&wupt_cfg);
 
     return AD5940ERR_OK;
@@ -252,9 +259,12 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
 
         error = _write_sequence_commands(
             config->parameters,
-            &(config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg),
-            &(config->path.lpdac_to_lptia->dsp_cfg->DftCfg),
             config->run->clock_cfg,
+            &(config->path.lpdac_to_lptia->dsp_cfg->DftCfg),
+            config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg.ADCAvgNum,
+            config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg.ADCSinc2Osr,
+            config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg.ADCSinc3Osr,
+            config->path.lpdac_to_lptia->dsp_cfg->ADCFilterCfg.BpNotch,
             config->run->DataType
         );
         if(error != AD5940ERR_OK) return error;
@@ -262,7 +272,9 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
         error = AD5940_ELECTROCHEMICAL_config_lpdac_lptia_adc(
             config->path.lpdac_to_lptia->lpdac_cfg,
             config->path.lpdac_to_lptia->lptia_cfg,
-            config->path.lpdac_to_lptia->dsp_cfg
+            config->path.lpdac_to_lptia->dsp_cfg,
+            config->run->clock_cfg->ADCRate,
+            bFALSE
         );
         if(error != AD5940ERR_OK) return error;
         break;
@@ -276,9 +288,12 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
 
         error = _write_sequence_commands(
             config->parameters,
-            &(config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg),
-            &(config->path.lpdac_to_hstia->dsp_cfg->DftCfg),
             config->run->clock_cfg,
+            &(config->path.lpdac_to_hstia->dsp_cfg->DftCfg),
+            config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg.ADCAvgNum,
+            config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg.ADCSinc2Osr,
+            config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg.ADCSinc3Osr,
+            config->path.lpdac_to_hstia->dsp_cfg->ADCFilterCfg.BpNotch,
             config->run->DataType
         );
         if(error != AD5940ERR_OK) return error;
@@ -287,7 +302,9 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
             config->path.lpdac_to_hstia->lpdac_cfg,
             config->path.lpdac_to_hstia->hstia_cfg,
             config->path.lpdac_to_hstia->dsp_cfg,
-            config->path.lpdac_to_hstia->electrode_routing
+            config->path.lpdac_to_hstia->electrode_routing,
+            config->run->clock_cfg->ADCRate,
+            bFALSE
         );
         if(error != AD5940ERR_OK) return error;
         break;
@@ -311,8 +328,8 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_start(
     error = _start_wakeup_timer_sequence(
         config->parameters,
         config->run->FifoSrc,
-        config->run->FIFO_thresh,
-        config->run->LFOSC_frequency
+        config->run->FifoThresh,
+        config->run->LFOSCClkFreq
     );
     if(error != AD5940ERR_OK) return error;
 
@@ -340,12 +357,12 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_convert_ADC_to_current(
     const fImpPol_Type *const RtiaCalValue,
     const uint32_t ADC_PGA_gain,
     const float ADC_reference_volt,
-    int32_t *const current
+    float *const current
 )
 {
     AD5940Err error;
-    int32_t current_step;
-    int32_t current_pulse;
+    float current_step;
+    float current_pulse;
 
     error = AD5940_convert_adc_to_current(
         adc_data_step, 

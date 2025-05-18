@@ -18,11 +18,11 @@ extern "C"
  * 
  * The selected path determines the loop used to perform the electrochemical operation.
  */
-typedef struct 
+typedef struct
 {
-    const AD5940_ELECTROCHEMICAL_EIS_PARAMETERS *parameters;                         /**< CA parameter settings */
+    const AD5940_ELECTROCHEMICAL_EIS_PARAMETERS *parameters;                        /**< CA parameter settings */
     const AD5940_ELECTROCHEMICAL_RUN_CONFIG *run;                                   /**< Execution and timing configuration */
-    const AD5940_ELECTROCHEMICAL_HSDAC_SIN_TO_HSTIA_CONFIG *hsdac_sin_to_hstia; /**< Configuration for HSDAC via MMR to HSTIA path */
+    const AD5940_ELECTROCHEMICAL_HSDAC_TO_HSTIA_CONFIG *hsdac_to_hstia;     /**< Configuration for HSDAC via MMR to HSTIA path */
 }
 AD5940_ELECTROCHEMICAL_EIS_CONFIG;
 

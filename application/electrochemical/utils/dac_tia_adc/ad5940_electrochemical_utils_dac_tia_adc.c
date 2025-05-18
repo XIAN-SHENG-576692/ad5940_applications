@@ -1,4 +1,4 @@
-#include "ad5940_electrochemical_utils_tia_adc.h"
+#include "ad5940_electrochemical_utils_dac_tia_adc.h"
 
 #include "ad5940_utils.h"
 
@@ -113,6 +113,8 @@ _TIA_SELECTION;
 void _get_DSPCfg_Type(
     DSPCfg_Type *const type, 
     const _TIA_SELECTION tia_selection,
+    const uint32_t ADCRate,
+    const BoolFlag WGClkEnable,
     const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const utility_type
 )
 {
@@ -132,7 +134,19 @@ void _get_DSPCfg_Type(
     type->ADCBaseCfg.ADCPga = utility_type->ADCPga;
 
     memcpy(&(type->ADCDigCompCfg), &(utility_type->ADCDigCompCfg), sizeof(ADCDigComp_Type));
-    memcpy(&(type->ADCFilterCfg), &(utility_type->ADCFilterCfg), sizeof(ADCFilterCfg_Type));
+    type->ADCFilterCfg = (ADCFilterCfg_Type) {
+        .ADCAvgNum = utility_type->ADCFilterCfg.ADCAvgNum,
+        .ADCRate = ADCRate,
+        .ADCSinc2Osr = utility_type->ADCFilterCfg.ADCSinc2Osr,
+        .ADCSinc3Osr = utility_type->ADCFilterCfg.ADCSinc3Osr,
+        .BpNotch = utility_type->ADCFilterCfg.BpNotch,
+        .BpSinc3 = utility_type->ADCFilterCfg.BpSinc3,
+        .Sinc2NotchClkEnable = utility_type->ADCFilterCfg.Sinc2NotchClkEnable,
+        .Sinc2NotchEnable = utility_type->ADCFilterCfg.Sinc2NotchEnable,
+        .Sinc3ClkEnable = utility_type->ADCFilterCfg.Sinc3ClkEnable,
+        .DFTClkEnable = utility_type->ADCFilterCfg.DFTClkEnable,
+        .WGClkEnable = WGClkEnable,
+    };
     memcpy(&(type->DftCfg), &(utility_type->DftCfg), sizeof(DFTCfg_Type));
     memcpy(&(type->StatCfg), &(utility_type->StatCfg), sizeof(StatCfg_Type));
 
@@ -142,7 +156,9 @@ void _get_DSPCfg_Type(
 AD5940Err AD5940_ELECTROCHEMICAL_config_lpdac_lptia_adc(
     const AD5940_ELECTROCHEMICAL_LPDACfg_Type *const lpdac_cfg,
     const AD5940_ELECTROCHEMICAL_LPTIACfg_Type *const lptia_cfg,
-    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const dsp_cfg
+    const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const dsp_cfg,
+    const uint32_t ADCRate,
+    const BoolFlag WGClkEnable
 )
 {
     LPAmpCfg_Type lp_amp_cfg_type;
@@ -156,6 +172,8 @@ AD5940Err AD5940_ELECTROCHEMICAL_config_lpdac_lptia_adc(
     _get_DSPCfg_Type(
         &dsp_cfg_type, 
         _TIA_SELECTION_LPTIA,
+        ADCRate,
+        WGClkEnable,
         dsp_cfg
     );
 
@@ -169,7 +187,9 @@ AD5940Err AD5940_ELECTROCHEMICAL_config_lpdac_hstia_adc(
     const AD5940_ELECTROCHEMICAL_LPDACfg_Type *const lpdac_cfg,
     const AD5940_ELECTROCHEMICAL_HSTIACfg_Type *const hstia_cfg,
     const AD5940_ELECTROCHEMICAL_DSPCfg_Type *const dsp_cfg,
-    const AD5940_ELECTROCHEMICAL_ELECTRODE_ROUTING *const electrode_routing
+    const AD5940_ELECTROCHEMICAL_ELECTRODE_ROUTING *const electrode_routing,
+    const uint32_t ADCRate,
+    const BoolFlag WGClkEnable
 )
 {
     LPAmpCfg_Type lp_amp_cfg_type;
@@ -190,6 +210,8 @@ AD5940Err AD5940_ELECTROCHEMICAL_config_lpdac_hstia_adc(
     _get_DSPCfg_Type(
         &dsp_cfg_type, 
         _TIA_SELECTION_HSTIA,
+        ADCRate,
+        WGClkEnable,
         dsp_cfg
     );
 

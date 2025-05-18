@@ -45,20 +45,25 @@ static void _get_FIFOCfg_Type(
 
 static void _get_ClksCalInfo_Type(
     ClksCalInfo_Type *const type,
-    const ADCFilterCfg_Type *const adc_filter,
-    const DFTCfg_Type *const dft,
     const AD5940_ClockConfig *const clock_cfg,
-    uint32_t DataType,
-    uint32_t DataCount
+    const DFTCfg_Type *const dft,
+    const uint32_t ADCAvgNum,
+    const uint32_t ADCSinc2Osr,
+    const uint32_t ADCSinc3Osr,
+    const BoolFlag BpNotch,
+    const uint32_t DataCount,
+    const uint32_t DataType
 )
 {
-    type->ADCAvgNum = adc_filter->ADCAvgNum;        /* Don't care */
-    type->ADCSinc2Osr = adc_filter->ADCSinc2Osr;    /* Don't care */
-    type->ADCSinc3Osr = adc_filter->ADCSinc3Osr;
-    type->DataType = DataType;
-    type->DataCount = DataCount;                   /* Sample one point everytime */
-    type->DftSrc = dft->DftSrc;
+    type->ADCAvgNum = ADCAvgNum;
+    type->ADCSinc2Osr = ADCSinc2Osr;
+    type->ADCSinc3Osr = ADCSinc3Osr;
+    type->ADCRate = clock_cfg->ADCRate;
     type->RatioSys2AdcClk = clock_cfg->RatioSys2AdcClk;
+    type->DataCount = DataCount;        /* Sample one point everytime */
+    type->DataType = DataType;
+    type->BpNotch = BpNotch;
+    type->DftSrc = dft->DftSrc;
     return;
 }
 
@@ -69,10 +74,14 @@ static void _get_ClksCalInfo_Type(
 static AD5940Err _write_ADC_sequence_commands(
 	const uint32_t start_address, 
     uint32_t *const sequence_length,
-    const ADCFilterCfg_Type *const adc_filter,
-    const DFTCfg_Type *const dft,
     const AD5940_ClockConfig *const clock_cfg,
-    uint32_t DataType
+    const DFTCfg_Type *const dft,
+    const uint32_t ADCAvgNum,
+    const uint32_t ADCSinc2Osr,
+    const uint32_t ADCSinc3Osr,
+    const BoolFlag BpNotch,
+    const uint32_t DataCount,
+    const uint32_t DataType
 )
 {
 	AD5940Err error = AD5940ERR_OK;
@@ -85,11 +94,14 @@ static AD5940Err _write_ADC_sequence_commands(
 
     _get_ClksCalInfo_Type(
         &clks_cal,
-        adc_filter,
-        dft,
         clock_cfg,
-        DataType,
-        1
+        dft,
+        ADCAvgNum,
+        ADCSinc2Osr,
+        ADCSinc3Osr,
+        BpNotch,
+        DataCount,
+        DataType
     );
 	AD5940_ClksCalculate(&clks_cal, &WaitClks);
 
@@ -140,9 +152,13 @@ static void _start()
 }
 
 AD5940Err AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
-    const ADCFilterCfg_Type *const adc_filter,
-    const DFTCfg_Type *const dft,
     const AD5940_ClockConfig *const clock_cfg,
+    const DFTCfg_Type *const dft,
+    const uint32_t ADCAvgNum,
+    const uint32_t ADCSinc2Osr,
+    const uint32_t ADCSinc3Osr,
+    const BoolFlag BpNotch,
+    const uint32_t DataCount,
     const uint32_t DataType,
     uint32_t *const sequence_address
 )
@@ -157,9 +173,13 @@ AD5940Err AD5940_ELECTROCHEMICAL_write_sequence_commands_config(
     error = _write_ADC_sequence_commands(
         *sequence_address,
         &sequence_commands_length,
-        adc_filter,
-        dft,
         clock_cfg,
+        dft,
+        ADCAvgNum,
+        ADCSinc2Osr,
+        ADCSinc3Osr,
+        BpNotch,
+        DataCount,
         DataType
     );
     if(error != AD5940ERR_OK) return AD5940ERR_PARA;

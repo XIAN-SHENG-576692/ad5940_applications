@@ -1,4 +1,4 @@
-#include "ad5940_electrochemical_utils_afe_dac.h"
+#include "ad5940_electrochemical_utils_afe_dac_tia.h"
 
 #include "ad5940_electrochemical_utils.h"
 

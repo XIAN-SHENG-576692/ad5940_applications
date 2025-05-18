@@ -100,7 +100,7 @@ AD5940Err AD5940_ELECTROCHEMICAL_DPV_convert_ADC_to_current(
     const fImpPol_Type *const RtiaCalValue,
     const uint32_t ADC_PGA_gain,
     const float ADC_reference_volt,
-    int32_t *const current
+    float *const current
 );
 
 #ifdef __cplusplus

@@ -29,16 +29,15 @@ AD5940_TEMPERATURE_ANALOG_CONFIG;
 
 typedef struct
 {
-    uint16_t FIFO_thresh;                   /**< FIFO threshold value. Interrupt is triggered when this threshold is reached. */
-    float LFOSC_frequency;                  /**< Low-frequency oscillator frequency, used for internal timing.
-                                                 Obtainable via @ref AD5940_LFOSCMeasure in library/ad5940.h.*/
-    const AD5940_ClockConfig *clock_cfg;    /**< Pointer to clock configuration.
-                                                 Obtainable via
-                                                 @ref AD5940_set_active_power
-                                                 in utility/ad5940_utility_power.h. */
     const AGPIOCfg_Type *agpio_cfg;         /**< Pointer to GPIO configuration.
                                                  - Refer to datasheet pages 112 and 122.
                                                  - Configure GPIO for interrupts based on PCB design. */
+    const AD5940_ClockConfig *clock_cfg;    /**< Pointer to clock configuration.
+                                                 Obtainable via
+                                                 @ref AD5940_set_active_power in utility/ad5940_utility_power.h. */
+    float LFOSC_frequency;                  /**< Low-frequency oscillator frequency, used for internal timing.
+                                                 Obtainable via @ref AD5940_LFOSCMeasure in library/ad5940.h.*/
+    uint16_t FIFO_thresh;                   /**< FIFO threshold value. Interrupt is triggered when this threshold is reached. */
 }
 AD5940_TEMPERATURE_RUN_CONFIG;
 

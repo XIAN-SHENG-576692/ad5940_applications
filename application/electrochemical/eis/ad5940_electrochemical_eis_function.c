@@ -1,5 +1,10 @@
 #include "ad5940_electrochemical_eis_function.h"
 
+#include "ad5940_utils.h"
+#include "ad5940_electrochemical_utils.h"
+
+#include <stdlib.h>
+
 AD5940Err AD5940_ELECTROCHEMICAL_EIS_start(
     const AD5940_ELECTROCHEMICAL_EIS_CONFIG *const config
 )

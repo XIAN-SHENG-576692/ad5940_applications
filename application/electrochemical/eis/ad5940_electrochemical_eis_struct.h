@@ -9,78 +9,40 @@ extern "C"
 #include "ad5940_utils_struct.h"
 #include "ad5940_electrochemical_utils_struct.h"
 
-/*
- * ================================================================
- * @brief This line below is for the AD5940 Electrochemical impedance spectroscopy (EIS) scan operation.
- * ================================================================
-*/
-
 typedef enum {
-    SCAN_POTENTIAL,
-    SCAN_TIME,
-    SCAN_FIXED
-} AD5940_ELECTROCHEMICAL_EIS_Scan_Type;
+    AD5940_ELECTROCHEMICAL_EIS_FREQ_FIXED,
+    AD5940_ELECTROCHEMICAL_EIS_FREQ_LOG,
+    AD5940_ELECTROCHEMICAL_EIS_FREQ_LINEAR,
+    AD5940_ELECTROCHEMICAL_EIS_FREQ_CUSTOM,
+} AD5940_ELECTROCHEMICAL_EIS_FREQ;
 
 typedef struct {
-    float E_begin;
-    float E_end;
-    float E_step;
-    float E_ac;        // AC amplitude (RMS)
-} AD5940_ELECTROCHEMICAL_EIS_Scan_PotentialScanParams;
 
-typedef struct {
-    float E_dc;        // DC potential
-    float E_ac;        // AC amplitude (RMS)
-    float t_run;        // in seconds
-    float t_interval;   // in seconds
-} AD5940_ELECTROCHEMICAL_EIS_Scan_TimeScanParams;
-
-typedef struct {
-    float E_dc;        // DC potential
-    float E_ac;        // AC amplitude (RMS)
-} AD5940_ELECTROCHEMICAL_EIS_Scan_FixedParams;
-
-/*
- * ================================================================
- * @brief This line below is for the AD5940 Electrochemical impedance spectroscopy (EIS) frequency operation.
- * ================================================================
-*/
-
-typedef enum {
-    FREQ_FIXED,
-    FREQ_SCAN
-} AD5940_ELECTROCHEMICAL_EIS_Frequency_Type;
-
-typedef struct {
-    float frequency;
-} AD5940_ELECTROCHEMICAL_EIS_Frequency_FixedParams;
-
-typedef struct {
-    uint8_t n_frequencies;
-    float f_max;
-    float f_min;
-} AD5940_ELECTROCHEMICAL_EIS_Frequency_ScanParams;
-
-/*
- * ================================================================
- * @brief This line below is for the AD5940 Electrochemical impedance spectroscopy (EIS) parameters.
- * ================================================================
-*/
-
-typedef struct {
-    AD5940_ELECTROCHEMICAL_EIS_Scan_Type scan_type;
-    union {
-        const AD5940_ELECTROCHEMICAL_EIS_Scan_PotentialScanParams *potential;
-        const AD5940_ELECTROCHEMICAL_EIS_Scan_TimeScanParams *time;
-        const AD5940_ELECTROCHEMICAL_EIS_Scan_FixedParams *fixed;
+    struct {
+        float e_begin;
+        float e_end;
+        float e_step;
+        float e_ac;         // AC amplitude (RMS)
+        float t_interval;   // in seconds
+        float t_run;        // in seconds
     } scan_params;
 
-    AD5940_ELECTROCHEMICAL_EIS_Frequency_Type frequency_type;
+    AD5940_ELECTROCHEMICAL_EIS_FREQ freq_type;
     union {
-        const AD5940_ELECTROCHEMICAL_EIS_Frequency_FixedParams *fixed;
-        const AD5940_ELECTROCHEMICAL_EIS_Frequency_ScanParams *scan;
-    } frequency_params;
-    
+        struct {
+            float f;
+        } fixed;
+        struct {
+            uint32_t num;
+            float f_max;
+            float f_min;
+        } linear, log;
+        struct {
+            uint32_t num;
+            float *f_list;
+        } custom;
+    } freq_params;
+
 } AD5940_ELECTROCHEMICAL_EIS_PARAMETERS;
 
 
